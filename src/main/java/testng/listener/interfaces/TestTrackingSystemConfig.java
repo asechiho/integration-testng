@@ -12,12 +12,6 @@ public interface TestTrackingSystemConfig {
     @Property("base.api.path")
     String getBaseApiPath();
 
-    @Property("login")
-    String getLogin();
-
-    @Property("password")
-    String getPassword();
-
     @Property("run.key")
     String getRunKey();
 

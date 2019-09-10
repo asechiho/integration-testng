@@ -2,16 +2,11 @@ package testng.listener.listeners;
 
 import com.google.inject.Inject;
 import io.qameta.allure.Link;
-import lombok.Getter;
 import org.testng.*;
 import org.testng.annotations.Guice;
 import testng.listener.annotations.TestKey;
-import testng.listener.interfaces.IntegrationConfig;
-import testng.listener.interfaces.JsonAdapter;
-import testng.listener.interfaces.TestTrackingSystemConfig;
-import testng.listener.resultexecutors.PostResult;
+import testng.listener.interfaces.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -39,15 +34,10 @@ public abstract class PostListener extends TestListenerAdapter implements ITestN
     public void onAfterClass(ITestClass testClass) {
         for (ITestNGMethod method : testClass.getTestMethods()) {
             if (isTestPush(method)) {
-                JsonAdapter adapter = getResultFromMethod(method);
-                this.actions.post(adapter);
+                post(getResultFromMethod(method));
             }
         }
-        JsonAdapter classResult = getResultFromClass(testClass);
-        if (classResult != null) {
-            this.actions.post(classResult);
-        }
-
+        post(getResultFromClass(testClass));
     }
 
     @Override
@@ -78,7 +68,8 @@ public abstract class PostListener extends TestListenerAdapter implements ITestN
     }
 
     protected boolean isTestPush(ITestNGMethod method) {
-        return method.getMethod().isAnnotationPresent(Link.class) || method.getMethod().isAnnotationPresent(TestKey.class);
+        return method.getConstructorOrMethod().getMethod().isAnnotationPresent(Link.class) ||
+                method.getConstructorOrMethod().getMethod().isAnnotationPresent(TestKey.class);
     }
 
     protected boolean isFailedTest(ITestNGMethod method) {
@@ -91,6 +82,12 @@ public abstract class PostListener extends TestListenerAdapter implements ITestN
 
     private Predicate<? super ITestResult> getTestContainsPredicate(ITestNGMethod containsMethod) {
         return (Predicate<ITestResult>) testNGMethod -> testNGMethod.getMethod().getMethodName().equalsIgnoreCase(containsMethod.getMethodName());
+    }
+
+    private synchronized void post(JsonAdapter adapter) {
+        if (adapter != null) {
+            this.actions.post(adapter);
+        }
     }
 
     public static TestTrackingSystemConfig getTestTrackingSystemConfig() {

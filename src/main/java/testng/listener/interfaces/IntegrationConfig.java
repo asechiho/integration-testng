@@ -16,6 +16,12 @@ public interface IntegrationConfig {
     @DefaultValue("xray")
     String getTestTrackingSystem();
 
+    @Property("test.tracking.system.login")
+    String getTestTrackingSystemLogin();
+
+    @Property("test.tracking.system.password")
+    String getTestTrackingSystemPassword();
+
     @Property("test.tracking.class")
     @DefaultValue("framework.utils.integration.resultexecutors.xray.feignapi.XrayTestExecutionImpl")
     String getClassName();

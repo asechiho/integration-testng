@@ -2,6 +2,7 @@ package testng.listener.resultexecutors;
 
 import com.google.inject.Binder;
 import testng.listener.interfaces.JsonAdapter;
+import testng.listener.interfaces.PostResult;
 
 import java.util.logging.Logger;
 
