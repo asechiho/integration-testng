@@ -10,7 +10,7 @@ import org.testng.internal.ClassHelper;
 import testng.listener.interfaces.IntegrationConfig;
 import testng.listener.resultexecutors.EmptyResultExecutor;
 
-public class ListenerInjectorFactory implements IModuleFactory {
+class ListenerInjectorFactory implements IModuleFactory {
 
     private static Module inject;
 
@@ -25,7 +25,7 @@ public class ListenerInjectorFactory implements IModuleFactory {
      * test class.
      */
     @Override
-    public com.google.inject.Module createModule(ITestContext context, Class<?> testClass) {
+    public Module createModule(ITestContext context, Class<?> testClass) {
         return getModule();
     }
 

@@ -1,7 +1,6 @@
-package testng.listener.resultexecutors;
+package testng.listener.interfaces;
 
 import com.google.inject.Module;
-import testng.listener.interfaces.JsonAdapter;
 
 public interface PostResult extends Module {
     void post(JsonAdapter testExecution);
