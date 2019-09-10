@@ -2,6 +2,7 @@ package testng.listener.listeners;
 
 import com.google.inject.Inject;
 import io.qameta.allure.Link;
+import lombok.Getter;
 import org.testng.*;
 import org.testng.annotations.Guice;
 import testng.listener.annotations.TestKey;
@@ -61,13 +62,13 @@ public abstract class PostListener extends TestListenerAdapter implements ITestN
         }
     }
 
-    private String getTestStatus(ITestNGMethod testNGMethod) {
+    protected String getTestStatus(ITestNGMethod testNGMethod) {
         String status = isFailedTest(testNGMethod) ? INTEGRATION_CONFIG.getStatusFail() : INTEGRATION_CONFIG.getStatusPass();
         status = isSkippTest(testNGMethod) ? INTEGRATION_CONFIG.getStatusSkip() : status;
         return status;
     }
 
-    private String getClassStatus(ITestClass iTestClass) {
+    protected String getClassStatus(ITestClass iTestClass) {
         List<ITestNGMethod> noAnnotatedMethods = Arrays.stream(iTestClass.getTestMethods())
                 .filter(mthd -> !isTestPush(mthd))
                 .collect(Collectors.toList());
@@ -76,19 +77,27 @@ public abstract class PostListener extends TestListenerAdapter implements ITestN
         return status;
     }
 
-    private boolean isTestPush(ITestNGMethod method) {
+    protected boolean isTestPush(ITestNGMethod method) {
         return method.getMethod().isAnnotationPresent(Link.class) || method.getMethod().isAnnotationPresent(TestKey.class);
     }
 
-    private boolean isFailedTest(ITestNGMethod method) {
+    protected boolean isFailedTest(ITestNGMethod method) {
         return getFailedTests().stream().anyMatch(getTestContainsPredicate(method));
     }
 
-    private boolean isSkippTest(ITestNGMethod method) {
+    protected boolean isSkippTest(ITestNGMethod method) {
         return getSkippedTests().stream().anyMatch(getTestContainsPredicate(method));
     }
 
     private Predicate<? super ITestResult> getTestContainsPredicate(ITestNGMethod containsMethod) {
         return (Predicate<ITestResult>) testNGMethod -> testNGMethod.getMethod().getMethodName().equalsIgnoreCase(containsMethod.getMethodName());
+    }
+
+    public static TestTrackingSystemConfig getTestTrackingSystemConfig() {
+        return TEST_TRACKING_SYSTEM_CONFIG;
+    }
+
+    public static IntegrationConfig getIntegrationConfig() {
+        return INTEGRATION_CONFIG;
     }
 }
