@@ -36,4 +36,7 @@ dependencies {
     compile 'org.testng:testng:6.14.3'
     compile 'ru.qatools.commons:properties:2.0.RC6'
     compile 'com.google.inject:guice:4.2.2'
+    compile 'io.github.openfeign:feign-core:10.2.3'
+    compile 'com.netflix.feign:feign-gson:8.18.0'
+    compile 'com.squareup.okhttp3:okhttp:3.11.0'
 }
