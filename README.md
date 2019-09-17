@@ -49,13 +49,40 @@ public class EmptyResultExecutor implements PostResult {
     }
 }
 ```
+Add model adapter for create test model with implement TestTrackingModelAdapter interface. For example: EmptyResultAdapter (used if test.tracking.use
+ = false)
+```java
+public class EmptyResultAdapter implements TestTrackingModelAdapter {
+
+    @Override
+    public JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
+        return null;
+    }
+
+    @Override
+    public JsonAdapter getResultFromClass(ITestClass iTestClass, String status) {
+        return null;
+    }
+
+    /**
+     * Contributes bindings and other configurations for this module to {@code binder}.
+     *
+     * @param binder: binder for guice
+     */
+    @Override
+    public void configure(Binder binder) {
+        binder.bind(TestTrackingModelAdapter.class).to(EmptyResultAdapter.class);
+    }
+}
+```
 Add a property file to the project with name: _integration.properties_.
 ```properties 
 test.tracking.use=false
 test.tracking.system=xray
 test.tracking.system.login=
 test.tracking.system.password=
-test.tracking.class=testng.listener.resultexecutors.EmptyResultExecutor
+test.tracking.class=testng.listener.resultexecutors.defaultex.EmptyResultExecutor
+test.tracking.model.adapter.class=testng.listener.resultexecutors.defaultex.EmptyResultAdapter")
 test.status.fail=FAIL
 test.status.pass=PASS
 test.status.skip=NOT_TESTED

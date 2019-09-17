@@ -23,8 +23,12 @@ public interface IntegrationConfig {
     String getTestTrackingSystemPassword();
 
     @Property("test.tracking.class")
-    @DefaultValue("framework.utils.integration.resultexecutors.xray.feignapi.XrayTestExecutionImpl")
-    String getClassName();
+    @DefaultValue("testng.listener.resultexecutors.defaultex.EmptyResultExecutor")
+    String getExecutorClassName();
+
+    @Property("test.tracking.model.adapter.class")
+    @DefaultValue("testng.listener.resultexecutors.defaultex.EmptyResultAdapter")
+    String getAdapterClassName();
 
     @Property("test.status.fail")
     @DefaultValue("FAIL")

@@ -1,4 +1,4 @@
-package testng.listener.resultexecutors;
+package testng.listener.resultexecutors.defaultex;
 
 import com.google.inject.Binder;
 import testng.listener.interfaces.JsonAdapter;
