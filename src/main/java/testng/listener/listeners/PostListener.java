@@ -1,26 +1,27 @@
 package testng.listener.listeners;
 
 import com.google.inject.Inject;
-import io.qameta.allure.Link;
 import org.testng.*;
 import org.testng.annotations.Guice;
-import testng.listener.annotations.TestKey;
-import testng.listener.interfaces.*;
+import testng.listener.config.IntegrationConfig;
+import testng.listener.interfaces.ExecutorAdapter;
+import testng.listener.interfaces.JsonAdapter;
+import testng.listener.interfaces.ModelAdapter;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Guice(moduleFactory = ListenerInjectorFactory.class)
-public abstract class PostListener extends TestListenerAdapter implements ITestNGListenerFactory, IPostListener, IClassListener {
+public class PostListener extends TestListenerAdapter implements ITestNGListenerFactory, IClassListener {
 
-    private static final TestTrackingSystemConfig TEST_TRACKING_SYSTEM_CONFIG = TestTrackingSystemConfig.getInstance();
     private static final IntegrationConfig INTEGRATION_CONFIG = IntegrationConfig.getInstance();
 
     @Inject
-    private PostResult actions;
+    private ExecutorAdapter actions;
+    @Inject
+    private ModelAdapter listenerAdapter;
 
     public PostListener() {
         ListenerInjectorFactory.getInjector().injectMembers(this);
@@ -33,7 +34,7 @@ public abstract class PostListener extends TestListenerAdapter implements ITestN
     @Override
     public void onAfterClass(ITestClass testClass) {
         for (ITestNGMethod method : testClass.getTestMethods()) {
-            if (isTestPush(method)) {
+            if (listenerAdapter.isTestPush(method)) {
                 post(getResultFromMethod(method));
             }
         }
@@ -52,31 +53,46 @@ public abstract class PostListener extends TestListenerAdapter implements ITestN
         }
     }
 
-    protected String getTestStatus(ITestNGMethod testNGMethod) {
-        String status = isFailedTest(testNGMethod) ? INTEGRATION_CONFIG.getStatusFail() : INTEGRATION_CONFIG.getStatusPass();
-        status = isSkippTest(testNGMethod) ? INTEGRATION_CONFIG.getStatusSkip() : status;
+    private Status getTestStatus(ITestNGMethod testNGMethod) {
+        Status status = isFailedTest(testNGMethod) ?
+                new Status(INTEGRATION_CONFIG.getStatusFail(), getTestThrowable(getFailedTests(), testNGMethod)) :
+                new Status(INTEGRATION_CONFIG.getStatusPass(), null);
+        status = isSkippTest(testNGMethod) ?
+               new Status(INTEGRATION_CONFIG.getStatusSkip(), getTestThrowable(getSkippedTests(), testNGMethod)) : status;
         return status;
     }
 
-    protected String getClassStatus(ITestClass iTestClass) {
+    private Status getClassStatus(ITestClass iTestClass) {
         List<ITestNGMethod> noAnnotatedMethods = Arrays.stream(iTestClass.getTestMethods())
-                .filter(mthd -> !isTestPush(mthd))
+                .filter(mthd -> !listenerAdapter.isTestPush(mthd))
                 .collect(Collectors.toList());
-        String status = noAnnotatedMethods.stream().anyMatch(this::isFailedTest) ? INTEGRATION_CONFIG.getStatusFail() : INTEGRATION_CONFIG.getStatusPass();
-        status = noAnnotatedMethods.stream().anyMatch(this::isSkippTest) ? INTEGRATION_CONFIG.getStatusSkip() : status;
+        Status status = noAnnotatedMethods.stream().anyMatch(this::isFailedTest) ?
+                new Status(INTEGRATION_CONFIG.getStatusFail(), getClassThrowable(getFailedTests(), noAnnotatedMethods)) :
+                new Status(INTEGRATION_CONFIG.getStatusPass(), null);
+        status = noAnnotatedMethods.stream().anyMatch(this::isSkippTest) ?
+                new Status(INTEGRATION_CONFIG.getStatusSkip(), getClassThrowable(getSkippedTests(), noAnnotatedMethods)) : status;
         return status;
     }
 
-    protected boolean isTestPush(ITestNGMethod method) {
-        return method.getConstructorOrMethod().getMethod().isAnnotationPresent(Link.class) ||
-                method.getConstructorOrMethod().getMethod().isAnnotationPresent(TestKey.class);
-    }
-
-    protected boolean isFailedTest(ITestNGMethod method) {
+    private boolean isFailedTest(ITestNGMethod method) {
         return getFailedTests().stream().anyMatch(getTestContainsPredicate(method));
     }
 
-    protected boolean isSkippTest(ITestNGMethod method) {
+    private List<Throwable> getTestThrowable(Collection<ITestResult> testResults, ITestNGMethod method) {
+        return testResults.stream().filter(getTestContainsPredicate(method))
+                .map(ITestResult::getThrowable)
+                .collect(Collectors.toList());
+    }
+
+    private List<Throwable> getClassThrowable(Collection<ITestResult> testResults, List<ITestNGMethod> methods) {
+        List<Throwable> throwable = new ArrayList<>();
+        methods.stream()
+                .map(method -> getTestThrowable(testResults, method))
+                .forEach(throwable::addAll);
+        return throwable;
+    }
+
+    private boolean isSkippTest(ITestNGMethod method) {
         return getSkippedTests().stream().anyMatch(getTestContainsPredicate(method));
     }
 
@@ -86,15 +102,19 @@ public abstract class PostListener extends TestListenerAdapter implements ITestN
 
     private synchronized void post(JsonAdapter adapter) {
         if (adapter != null) {
-            this.actions.post(adapter);
+            this.actions.execute(adapter);
         }
-    }
-
-    public static TestTrackingSystemConfig getTestTrackingSystemConfig() {
-        return TEST_TRACKING_SYSTEM_CONFIG;
     }
 
     public static IntegrationConfig getIntegrationConfig() {
         return INTEGRATION_CONFIG;
+    }
+
+    private JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod) {
+        return listenerAdapter.getResultFromMethod(iTestNGMethod, getTestStatus(iTestNGMethod));
+    }
+
+    private JsonAdapter getResultFromClass(ITestClass iTestClass) {
+        return listenerAdapter.getResultFromClass(iTestClass, getClassStatus(iTestClass));
     }
 }

@@ -11,32 +11,12 @@ Technology stack:
 Build tool: gradle
 
 ## Getting started
-Add the library to our project
-```xml
-<dependency>
-    <groupId>testng-integration</groupId>
-    <artifactId>listener</artifactId>
-    <version>1.0</version>
-</dependency>
-```
-Then add new implements for PostListener (It's an abstract class). Implement _getResultFromMethod_ and _getResultFromClass_ to create model with results
-```java
-public class XRayListener extends PostListener {
-    @Override
-    public JsonAdapter getResultFromMethod(ITestNGMethod iTestClass) {
-        return TextExecution.fromMethodResult(iTestClass);
-    }
-
-    @Override
-    public JsonAdapter getResultFromClass(ITestClass iTestClass) {
-        return TextExecution.fromClassResult(iTestClass);
-    }
-}
-```
-Add test tracking system executor with implement PostResult interface. For example: EmptyResultExecutor (used if test.tracking.use = false)
+**First**: add the library to our project. <br>
+**Second**: add test tracking system executor with implement _**ExecutorAdapter**_ interface. For example: EmptyResultExecutor (used if test.tracking.use
+ = false)
 The method 'configure' add our executor to guice injector;
 ```java
-public class EmptyResultExecutor implements PostResult {
+public class EmptyExecutorAdapter implements ExecutorAdapter {
 
     @Override
     public void post(JsonAdapter testExecution) {
@@ -49,20 +29,56 @@ public class EmptyResultExecutor implements PostResult {
     }
 }
 ```
-Add a property file to the project with name: _integration.properties_.
+**Then**: add model adapter for create test model with implement _**ModelAdapter**_ interface. For example: EmptyResultAdapter (used if test.tracking.use
+ = false)
+```java
+public class EmptyModelAdapter implements ModelAdapter {
+
+    @Override
+    public JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
+        return null;
+    }
+
+    @Override
+    public JsonAdapter getResultFromClass(ITestClass iTestClass, String status) {
+        return null;
+    }
+
+    /**
+     * Contributes bindings and other configurations for this module to {@code binder}.
+     *
+     * @param binder: binder for guice
+     */
+    @Override
+    public void configure(Binder binder) {
+        binder.bind(TestTrackingModelAdapter.class).to(EmptyResultAdapter.class);
+    }
+}
+```
+**Finally**: create guice initialization class. Can be only one class with the _**@GuiceInitialization**_ mark.
+```java
+@GuiceInitialization
+public class DefaultGuice implements IGuiceInitialization {
+    @Override
+    public PostResult getExecutorAdapter() {
+        return new EmptyExecutorAdapter();
+    }
+
+    @Override
+    public TestTrackingModelAdapter getModelAdapter() {
+        return new EmptyModelAdapter();
+    }
+}
+```
+**In Additional**: add a property file to the project with name: _**integration.properties**_.
 ```properties 
 test.tracking.use=false
-test.tracking.system=xray
 test.tracking.system.login=
 test.tracking.system.password=
-test.tracking.class=testng.listener.resultexecutors.EmptyResultExecutor
 test.status.fail=FAIL
 test.status.pass=PASS
 test.status.skip=NOT_TESTED
-```
-Then add a property file with name: <test.tracking.system>.properties.
- ```properties 
-base.url=
-base.api.path=
-run.key=
+test.tracking.system.base.url=
+test.tracking.system.base.api.path=
+test.tracking.system.run.key=
  ```
