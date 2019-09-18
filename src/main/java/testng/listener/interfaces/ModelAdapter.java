@@ -5,12 +5,13 @@ import io.qameta.allure.Link;
 import org.testng.ITestClass;
 import org.testng.ITestNGMethod;
 import testng.listener.annotations.TestKey;
+import testng.listener.listeners.Status;
 
 import java.lang.annotation.Annotation;
 
 public interface ModelAdapter extends Module {
-    JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status);
-    JsonAdapter getResultFromClass(ITestClass iTestClass, String status);
+    JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, Status status);
+    JsonAdapter getResultFromClass(ITestClass iTestClass, Status status);
 
     default TestKey getTestKeyForMethod(ITestNGMethod testNGMethod) {
         TestKey key = testNGMethod.getConstructorOrMethod().getMethod().getAnnotation(TestKey.class);

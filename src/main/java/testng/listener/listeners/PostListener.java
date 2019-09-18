@@ -8,8 +8,7 @@ import testng.listener.interfaces.ExecutorAdapter;
 import testng.listener.interfaces.JsonAdapter;
 import testng.listener.interfaces.ModelAdapter;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -54,23 +53,43 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
         }
     }
 
-    private String getTestStatus(ITestNGMethod testNGMethod) {
-        String status = isFailedTest(testNGMethod) ? INTEGRATION_CONFIG.getStatusFail() : INTEGRATION_CONFIG.getStatusPass();
-        status = isSkippTest(testNGMethod) ? INTEGRATION_CONFIG.getStatusSkip() : status;
+    private Status getTestStatus(ITestNGMethod testNGMethod) {
+        Status status = isFailedTest(testNGMethod) ?
+                new Status(INTEGRATION_CONFIG.getStatusFail(), getTestThrowable(getFailedTests(), testNGMethod)) :
+                new Status(INTEGRATION_CONFIG.getStatusPass(), null);
+        status = isSkippTest(testNGMethod) ?
+               new Status(INTEGRATION_CONFIG.getStatusSkip(), getTestThrowable(getSkippedTests(), testNGMethod)) : status;
         return status;
     }
 
-    private String getClassStatus(ITestClass iTestClass) {
+    private Status getClassStatus(ITestClass iTestClass) {
         List<ITestNGMethod> noAnnotatedMethods = Arrays.stream(iTestClass.getTestMethods())
                 .filter(mthd -> !listenerAdapter.isTestPush(mthd))
                 .collect(Collectors.toList());
-        String status = noAnnotatedMethods.stream().anyMatch(this::isFailedTest) ? INTEGRATION_CONFIG.getStatusFail() : INTEGRATION_CONFIG.getStatusPass();
-        status = noAnnotatedMethods.stream().anyMatch(this::isSkippTest) ? INTEGRATION_CONFIG.getStatusSkip() : status;
+        Status status = noAnnotatedMethods.stream().anyMatch(this::isFailedTest) ?
+                new Status(INTEGRATION_CONFIG.getStatusFail(), getClassThrowable(getFailedTests(), noAnnotatedMethods)) :
+                new Status(INTEGRATION_CONFIG.getStatusPass(), null);
+        status = noAnnotatedMethods.stream().anyMatch(this::isSkippTest) ?
+                new Status(INTEGRATION_CONFIG.getStatusSkip(), getClassThrowable(getSkippedTests(), noAnnotatedMethods)) : status;
         return status;
     }
 
     private boolean isFailedTest(ITestNGMethod method) {
         return getFailedTests().stream().anyMatch(getTestContainsPredicate(method));
+    }
+
+    private List<Throwable> getTestThrowable(Collection<ITestResult> testResults, ITestNGMethod method) {
+        return testResults.stream().filter(getTestContainsPredicate(method))
+                .map(ITestResult::getThrowable)
+                .collect(Collectors.toList());
+    }
+
+    private List<Throwable> getClassThrowable(Collection<ITestResult> testResults, List<ITestNGMethod> methods) {
+        List<Throwable> throwable = new ArrayList<>();
+        methods.stream()
+                .map(method -> getTestThrowable(testResults, method))
+                .forEach(throwable::addAll);
+        return throwable;
     }
 
     private boolean isSkippTest(ITestNGMethod method) {

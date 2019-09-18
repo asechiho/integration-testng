@@ -3,18 +3,19 @@ package testng.listener.resultexecutors.defaultex;
 import com.google.inject.Binder;
 import org.testng.ITestClass;
 import org.testng.ITestNGMethod;
-import testng.listener.interfaces.ModelAdapter;
 import testng.listener.interfaces.JsonAdapter;
+import testng.listener.interfaces.ModelAdapter;
+import testng.listener.listeners.Status;
 
 public class EmptyModelAdapter implements ModelAdapter {
 
     @Override
-    public JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
+    public JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, Status status) {
         return null;
     }
 
     @Override
-    public JsonAdapter getResultFromClass(ITestClass iTestClass, String status) {
+    public JsonAdapter getResultFromClass(ITestClass iTestClass, Status status) {
         return null;
     }
 

@@ -12,10 +12,11 @@ Build tool: gradle
 
 ## Getting started
 **First**: add the library to our project. <br>
-**Second**: add test tracking system executor with implement PostResult interface. For example: EmptyResultExecutor (used if test.tracking.use = false)
+**Second**: add test tracking system executor with implement _**ExecutorAdapter**_ interface. For example: EmptyResultExecutor (used if test.tracking.use
+ = false)
 The method 'configure' add our executor to guice injector;
 ```java
-public class EmptyExecutorAdapter implements PostResult {
+public class EmptyExecutorAdapter implements ExecutorAdapter {
 
     @Override
     public void post(JsonAdapter testExecution) {
@@ -28,10 +29,10 @@ public class EmptyExecutorAdapter implements PostResult {
     }
 }
 ```
-**Then**: add model adapter for create test model with implement TestTrackingModelAdapter interface. For example: EmptyResultAdapter (used if test.tracking.use
+**Then**: add model adapter for create test model with implement _**ModelAdapter**_ interface. For example: EmptyResultAdapter (used if test.tracking.use
  = false)
 ```java
-public class EmptyModelAdapter implements TestTrackingModelAdapter {
+public class EmptyModelAdapter implements ModelAdapter {
 
     @Override
     public JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
@@ -54,7 +55,7 @@ public class EmptyModelAdapter implements TestTrackingModelAdapter {
     }
 }
 ```
-**Finally**: create guice initialization class. Can be only one class with @GuiceInitialization.
+**Finally**: create guice initialization class. Can be only one class with the _**@GuiceInitialization**_ mark.
 ```java
 @GuiceInitialization
 public class DefaultGuice implements IGuiceInitialization {

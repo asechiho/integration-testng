@@ -6,6 +6,7 @@ import org.testng.ITestNGMethod;
 import testng.listener.annotations.TestKey;
 import testng.listener.interfaces.JsonAdapter;
 import testng.listener.interfaces.ModelAdapter;
+import testng.listener.listeners.Status;
 import testng.listener.resultexecutors.xray.models.TestExecution;
 import testng.listener.resultexecutors.xray.models.TestInfo;
 
@@ -17,17 +18,17 @@ import static testng.listener.listeners.PostListener.getIntegrationConfig;
 public class XRayModelAdapter implements ModelAdapter {
 
     @Override
-    public synchronized JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
+    public synchronized JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, Status status) {
         TestKey key = getTestKeyForMethod(iTestNGMethod);
         if (key == null) {
             return null;
         }
         return new TestExecution(getIntegrationConfig().getRunKey(), null, new ArrayList<>())
-                        .withTest(new TestInfo(key.key(), null, null, "", status));
+                        .withTest(new TestInfo(key.key(), null, null, status.getAllMessage("%n"), status.getStatusValue()));
     }
 
     @Override
-    public synchronized JsonAdapter getResultFromClass(ITestClass iTestClass, String status) {
+    public synchronized JsonAdapter getResultFromClass(ITestClass iTestClass, Status status) {
         if (Arrays.stream(iTestClass.getTestMethods())
                 .anyMatch(method -> !isTestPush(method))) {
             TestKey key = getTestKeyForClass(iTestClass);
@@ -35,7 +36,7 @@ public class XRayModelAdapter implements ModelAdapter {
                 return null;
             }
             return new TestExecution(getIntegrationConfig().getRunKey(), null, new ArrayList<>())
-                            .withTest(new TestInfo(key.key(), null, null, "", status));
+                            .withTest(new TestInfo(key.key(), null, null, status.getAllMessage("%n"), status.getStatusValue()));
         }
         return null;
     }
