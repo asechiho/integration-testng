@@ -1,15 +1,17 @@
 package testng.listener.interfaces;
 
+import com.google.inject.Module;
 import io.qameta.allure.Link;
 import org.testng.ITestClass;
 import org.testng.ITestNGMethod;
 import testng.listener.annotations.TestKey;
+import testng.listener.listeners.Status;
 
 import java.lang.annotation.Annotation;
 
-public interface IPostListener {
-    JsonAdapter getResultFromMethod(ITestNGMethod iTestClass);
-    JsonAdapter getResultFromClass(ITestClass iTestClass);
+public interface ModelAdapter extends Module {
+    JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, Status status);
+    JsonAdapter getResultFromClass(ITestClass iTestClass, Status status);
 
     default TestKey getTestKeyForMethod(ITestNGMethod testNGMethod) {
         TestKey key = testNGMethod.getConstructorOrMethod().getMethod().getAnnotation(TestKey.class);
@@ -50,5 +52,10 @@ public interface IPostListener {
                 return key;
             }
         };
+    }
+
+    default boolean isTestPush(ITestNGMethod method) {
+        return method.getConstructorOrMethod().getMethod().isAnnotationPresent(Link.class) ||
+                method.getConstructorOrMethod().getMethod().isAnnotationPresent(TestKey.class);
     }
 }

@@ -22,7 +22,7 @@ public class OffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
      * Writes one JSON value (an array, object, string, number, boolean or null)
      * for {@code value}.
      *
-     * @param out
+     * @param out: outputStream
      * @param value the Java object to write. May be null.
      */
     @Override
@@ -38,7 +38,7 @@ public class OffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
      * Reads one JSON value (an array, object, string, number, boolean or null)
      * and converts it to a Java object. Returns the converted object.
      *
-     * @param in
+     * @param in: inputStream
      * @return the converted Java object. May be null.
      */
     @Override

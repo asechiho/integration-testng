@@ -1,4 +1,4 @@
-package testng.listener.interfaces;
+package testng.listener.config;
 
 import ru.qatools.properties.DefaultValue;
 import ru.qatools.properties.Property;
@@ -13,7 +13,6 @@ public interface IntegrationConfig {
     boolean isTestTrackingUse();
 
     @Property("test.tracking.system")
-    @DefaultValue("xray")
     String getTestTrackingSystem();
 
     @Property("test.tracking.system.login")
@@ -21,10 +20,6 @@ public interface IntegrationConfig {
 
     @Property("test.tracking.system.password")
     String getTestTrackingSystemPassword();
-
-    @Property("test.tracking.class")
-    @DefaultValue("framework.utils.integration.resultexecutors.xray.feignapi.XrayTestExecutionImpl")
-    String getClassName();
 
     @Property("test.status.fail")
     @DefaultValue("FAIL")
@@ -37,6 +32,15 @@ public interface IntegrationConfig {
     @Property("test.status.skip")
     @DefaultValue("SKIP")
     String getStatusSkip();
+
+    @Property("test.tracking.system.base.url")
+    String getBaseUrl();
+
+    @Property("test.tracking.system.base.api.path")
+    String getBaseApiPath();
+
+    @Property("test.tracking.system.run.key")
+    String getRunKey();
 
     static IntegrationConfig getInstance() {
         return PropertyLoader.newInstance().populate(IntegrationConfig.class);
