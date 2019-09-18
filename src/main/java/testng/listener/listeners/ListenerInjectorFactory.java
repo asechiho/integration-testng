@@ -1,24 +1,27 @@
 package testng.listener.listeners;
 
-import com.google.common.reflect.ClassPath;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 import org.testng.IModuleFactory;
 import org.testng.ITestContext;
 import org.testng.internal.ClassHelper;
 import testng.listener.DefaultGuice;
 import testng.listener.annotations.GuiceInitialization;
+import testng.listener.exceptions.ClassPathException;
 import testng.listener.exceptions.InjectionClassException;
 import testng.listener.interfaces.IGuiceInitialization;
-import testng.listener.interfaces.IntegrationConfig;
-import testng.listener.resultexecutors.defaultex.EmptyModelAdapter;
+import testng.listener.config.IntegrationConfig;
 import testng.listener.resultexecutors.defaultex.EmptyExecutorAdapter;
+import testng.listener.resultexecutors.defaultex.EmptyModelAdapter;
 
-import java.io.IOException;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 class ListenerInjectorFactory implements IModuleFactory {
 
@@ -65,27 +68,26 @@ class ListenerInjectorFactory implements IModuleFactory {
      */
     private static IGuiceInitialization iniGuiceInitialization() {
         try {
-            if (!IntegrationConfig.getInstance().isTestTrackingUse()) {
-                return new DefaultGuice();
-            }
-            return (IGuiceInitialization) ClassHelper.newInstance(getGuiceInitializationClass().load());
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to initialize Guice module", e);
+            return !IntegrationConfig.getInstance().isTestTrackingUse() ? new DefaultGuice()
+                    : (IGuiceInitialization) ClassHelper.newInstance(getGuiceInitializationClass());
+        } catch (MalformedURLException e) {
+            throw new ClassPathException(e.getMessage());
         }
     }
 
-    @SuppressWarnings("all")
-    private static ClassPath.ClassInfo getGuiceInitializationClass() throws IOException {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        ClassPath classPath = ClassPath.from(classLoader);
-        Set<ClassPath.ClassInfo> classes = classPath.getAllClasses();
+    private static Class<?> getGuiceInitializationClass() throws MalformedURLException {
+        URL resource = ListenerInjectorFactory.class.getClassLoader().getResource("");
 
-        Set<ClassPath.ClassInfo> classesWithAnnotation = classes.stream()
-                .filter(classInfo -> classInfo.load().isAnnotationPresent(GuiceInitialization.class))
-                .collect(Collectors.toSet());
-        if (classesWithAnnotation.size() != 1) {
+        if (resource == null) {
+            throw new MalformedURLException("Resource path not found");
+        }
+
+        ConfigurationBuilder builder = new ConfigurationBuilder().setUrls(new File(resource.getPath()).getParentFile().toURI().toURL());
+        Set<Class<?>> classInfoSet = new Reflections(builder).getTypesAnnotatedWith(GuiceInitialization.class);
+        if (classInfoSet.size() != 1) {
             throw new InjectionClassException(String.format("Found more 1 class with annotation: {%s}", IGuiceInitialization.class.getName()));
         }
-        return classesWithAnnotation.iterator().next();
+        return classInfoSet.iterator().next();
     }
+
 }

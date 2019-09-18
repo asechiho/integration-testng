@@ -2,19 +2,19 @@ package testng.listener.resultexecutors.defaultex;
 
 import com.google.inject.Binder;
 import testng.listener.interfaces.JsonAdapter;
-import testng.listener.interfaces.PostResult;
+import testng.listener.interfaces.ExecutorAdapter;
 
 import java.util.logging.Logger;
 
-public class EmptyExecutorAdapter implements PostResult {
+public class EmptyExecutorAdapter implements ExecutorAdapter {
 
     @Override
-    public void post(JsonAdapter testExecution) {
+    public void execute(JsonAdapter testExecution) {
         Logger.getGlobal().info("Empty actions for posting results");
     }
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(PostResult.class).to(EmptyExecutorAdapter.class);
+        binder.bind(ExecutorAdapter.class).to(EmptyExecutorAdapter.class);
     }
 }

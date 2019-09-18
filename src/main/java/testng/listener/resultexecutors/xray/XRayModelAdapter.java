@@ -5,16 +5,16 @@ import org.testng.ITestClass;
 import org.testng.ITestNGMethod;
 import testng.listener.annotations.TestKey;
 import testng.listener.interfaces.JsonAdapter;
-import testng.listener.interfaces.TestTrackingModelAdapter;
+import testng.listener.interfaces.ModelAdapter;
 import testng.listener.resultexecutors.xray.models.TestExecution;
 import testng.listener.resultexecutors.xray.models.TestInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static testng.listener.listeners.PostListener.getTestTrackingSystemConfig;
+import static testng.listener.listeners.PostListener.getIntegrationConfig;
 
-public class XrayModelAdapter implements TestTrackingModelAdapter {
+public class XRayModelAdapter implements ModelAdapter {
 
     @Override
     public synchronized JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
@@ -22,7 +22,7 @@ public class XrayModelAdapter implements TestTrackingModelAdapter {
         if (key == null) {
             return null;
         }
-        return new TestExecution(getTestTrackingSystemConfig().getRunKey(), null, new ArrayList<>())
+        return new TestExecution(getIntegrationConfig().getRunKey(), null, new ArrayList<>())
                         .withTest(new TestInfo(key.key(), null, null, "", status));
     }
 
@@ -34,7 +34,7 @@ public class XrayModelAdapter implements TestTrackingModelAdapter {
             if (key == null) {
                 return null;
             }
-            return new TestExecution(getTestTrackingSystemConfig().getRunKey(), null, new ArrayList<>())
+            return new TestExecution(getIntegrationConfig().getRunKey(), null, new ArrayList<>())
                             .withTest(new TestInfo(key.key(), null, null, "", status));
         }
         return null;
@@ -48,6 +48,6 @@ public class XrayModelAdapter implements TestTrackingModelAdapter {
      */
     @Override
     public void configure(Binder binder) {
-        binder.bind(TestTrackingModelAdapter.class).to(XrayModelAdapter.class);
+        binder.bind(ModelAdapter.class).to(XRayModelAdapter.class);
     }
 }

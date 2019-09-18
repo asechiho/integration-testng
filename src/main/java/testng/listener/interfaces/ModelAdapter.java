@@ -8,7 +8,7 @@ import testng.listener.annotations.TestKey;
 
 import java.lang.annotation.Annotation;
 
-public interface TestTrackingModelAdapter extends Module {
+public interface ModelAdapter extends Module {
     JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status);
     JsonAdapter getResultFromClass(ITestClass iTestClass, String status);
 

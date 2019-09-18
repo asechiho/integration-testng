@@ -11,15 +11,8 @@ Technology stack:
 Build tool: gradle
 
 ## Getting started
-Add the library to our project
-```xml
-<dependency>
-    <groupId>testng-integration</groupId>
-    <artifactId>listener</artifactId>
-    <version>1.0</version>
-</dependency>
-```
-Add test tracking system executor with implement PostResult interface. For example: EmptyResultExecutor (used if test.tracking.use = false)
+**First**: add the library to our project. <br>
+**Second**: add test tracking system executor with implement PostResult interface. For example: EmptyResultExecutor (used if test.tracking.use = false)
 The method 'configure' add our executor to guice injector;
 ```java
 public class EmptyExecutorAdapter implements PostResult {
@@ -35,7 +28,7 @@ public class EmptyExecutorAdapter implements PostResult {
     }
 }
 ```
-Add model adapter for create test model with implement TestTrackingModelAdapter interface. For example: EmptyResultAdapter (used if test.tracking.use
+**Then**: add model adapter for create test model with implement TestTrackingModelAdapter interface. For example: EmptyResultAdapter (used if test.tracking.use
  = false)
 ```java
 public class EmptyModelAdapter implements TestTrackingModelAdapter {
@@ -61,7 +54,7 @@ public class EmptyModelAdapter implements TestTrackingModelAdapter {
     }
 }
 ```
-Finally. Create guice initialization class. Can be only one class with @GuiceInitialization.
+**Finally**: create guice initialization class. Can be only one class with @GuiceInitialization.
 ```java
 @GuiceInitialization
 public class DefaultGuice implements IGuiceInitialization {
@@ -76,19 +69,15 @@ public class DefaultGuice implements IGuiceInitialization {
     }
 }
 ```
-Add a property file to the project with name: _integration.properties_.
+**In Additional**: add a property file to the project with name: _**integration.properties**_.
 ```properties 
 test.tracking.use=false
-test.tracking.system=xray
 test.tracking.system.login=
 test.tracking.system.password=
 test.status.fail=FAIL
 test.status.pass=PASS
 test.status.skip=NOT_TESTED
-```
-Then add a property file with name: <test.tracking.system>.properties.
- ```properties 
-base.url=
-base.api.path=
-run.key=
+test.tracking.system.base.url=
+test.tracking.system.base.api.path=
+test.tracking.system.run.key=
  ```

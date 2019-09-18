@@ -3,10 +3,10 @@ package testng.listener.resultexecutors.defaultex;
 import com.google.inject.Binder;
 import org.testng.ITestClass;
 import org.testng.ITestNGMethod;
-import testng.listener.interfaces.TestTrackingModelAdapter;
+import testng.listener.interfaces.ModelAdapter;
 import testng.listener.interfaces.JsonAdapter;
 
-public class EmptyModelAdapter implements TestTrackingModelAdapter {
+public class EmptyModelAdapter implements ModelAdapter {
 
     @Override
     public JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
@@ -25,6 +25,6 @@ public class EmptyModelAdapter implements TestTrackingModelAdapter {
      */
     @Override
     public void configure(Binder binder) {
-        binder.bind(TestTrackingModelAdapter.class).to(EmptyModelAdapter.class);
+        binder.bind(ModelAdapter.class).to(EmptyModelAdapter.class);
     }
 }

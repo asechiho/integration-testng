@@ -3,7 +3,10 @@ package testng.listener.listeners;
 import com.google.inject.Inject;
 import org.testng.*;
 import org.testng.annotations.Guice;
-import testng.listener.interfaces.*;
+import testng.listener.config.IntegrationConfig;
+import testng.listener.interfaces.ExecutorAdapter;
+import testng.listener.interfaces.JsonAdapter;
+import testng.listener.interfaces.ModelAdapter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,13 +17,12 @@ import java.util.stream.Collectors;
 @Guice(moduleFactory = ListenerInjectorFactory.class)
 public class PostListener extends TestListenerAdapter implements ITestNGListenerFactory, IClassListener {
 
-    private static final TestTrackingSystemConfig TEST_TRACKING_SYSTEM_CONFIG = TestTrackingSystemConfig.getInstance();
     private static final IntegrationConfig INTEGRATION_CONFIG = IntegrationConfig.getInstance();
 
     @Inject
-    private PostResult actions;
+    private ExecutorAdapter actions;
     @Inject
-    private TestTrackingModelAdapter listenerAdapter;
+    private ModelAdapter listenerAdapter;
 
     public PostListener() {
         ListenerInjectorFactory.getInjector().injectMembers(this);
@@ -81,12 +83,12 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
 
     private synchronized void post(JsonAdapter adapter) {
         if (adapter != null) {
-            this.actions.post(adapter);
+            this.actions.execute(adapter);
         }
     }
 
-    public static TestTrackingSystemConfig getTestTrackingSystemConfig() {
-        return TEST_TRACKING_SYSTEM_CONFIG;
+    public static IntegrationConfig getIntegrationConfig() {
+        return INTEGRATION_CONFIG;
     }
 
     private JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod) {

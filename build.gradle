@@ -1,9 +1,7 @@
 apply plugin: 'java'
 
-allprojects {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 group 'integration-testng'
 version '1.0'
@@ -39,4 +37,7 @@ dependencies {
     compile 'io.github.openfeign:feign-core:10.2.3'
     compile 'com.netflix.feign:feign-gson:8.18.0'
     compile 'com.squareup.okhttp3:okhttp:3.11.0'
+    compile('org.reflections:reflections:0.9.11') {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
 }
