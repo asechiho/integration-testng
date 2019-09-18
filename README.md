@@ -19,24 +19,10 @@ Add the library to our project
     <version>1.0</version>
 </dependency>
 ```
-Then add new implements for PostListener (It's an abstract class). Implement _getResultFromMethod_ and _getResultFromClass_ to create model with results
-```java
-public class XRayListener extends PostListener {
-    @Override
-    public JsonAdapter getResultFromMethod(ITestNGMethod iTestClass) {
-        return TextExecution.fromMethodResult(iTestClass);
-    }
-
-    @Override
-    public JsonAdapter getResultFromClass(ITestClass iTestClass) {
-        return TextExecution.fromClassResult(iTestClass);
-    }
-}
-```
 Add test tracking system executor with implement PostResult interface. For example: EmptyResultExecutor (used if test.tracking.use = false)
 The method 'configure' add our executor to guice injector;
 ```java
-public class EmptyResultExecutor implements PostResult {
+public class EmptyExecutorAdapter implements PostResult {
 
     @Override
     public void post(JsonAdapter testExecution) {
@@ -52,7 +38,7 @@ public class EmptyResultExecutor implements PostResult {
 Add model adapter for create test model with implement TestTrackingModelAdapter interface. For example: EmptyResultAdapter (used if test.tracking.use
  = false)
 ```java
-public class EmptyResultAdapter implements TestTrackingModelAdapter {
+public class EmptyModelAdapter implements TestTrackingModelAdapter {
 
     @Override
     public JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
@@ -75,14 +61,27 @@ public class EmptyResultAdapter implements TestTrackingModelAdapter {
     }
 }
 ```
+Finally. Create guice initialization class. Can be only one class with @GuiceInitialization.
+```java
+@GuiceInitialization
+public class DefaultGuice implements IGuiceInitialization {
+    @Override
+    public PostResult getExecutorAdapter() {
+        return new EmptyExecutorAdapter();
+    }
+
+    @Override
+    public TestTrackingModelAdapter getModelAdapter() {
+        return new EmptyModelAdapter();
+    }
+}
+```
 Add a property file to the project with name: _integration.properties_.
 ```properties 
 test.tracking.use=false
 test.tracking.system=xray
 test.tracking.system.login=
 test.tracking.system.password=
-test.tracking.class=testng.listener.resultexecutors.defaultex.EmptyResultExecutor
-test.tracking.model.adapter.class=testng.listener.resultexecutors.defaultex.EmptyResultAdapter")
 test.status.fail=FAIL
 test.status.pass=PASS
 test.status.skip=NOT_TESTED

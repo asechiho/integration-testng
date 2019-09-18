@@ -6,7 +6,7 @@ import testng.listener.interfaces.PostResult;
 
 import java.util.logging.Logger;
 
-public class EmptyResultExecutor implements PostResult {
+public class EmptyExecutorAdapter implements PostResult {
 
     @Override
     public void post(JsonAdapter testExecution) {
@@ -15,6 +15,6 @@ public class EmptyResultExecutor implements PostResult {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(PostResult.class).to(EmptyResultExecutor.class);
+        binder.bind(PostResult.class).to(EmptyExecutorAdapter.class);
     }
 }

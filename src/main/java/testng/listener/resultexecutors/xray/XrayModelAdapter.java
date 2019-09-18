@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 import static testng.listener.listeners.PostListener.getTestTrackingSystemConfig;
 
-public class XrayAdapter implements TestTrackingModelAdapter {
+public class XrayModelAdapter implements TestTrackingModelAdapter {
 
     @Override
     public synchronized JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
@@ -48,6 +48,6 @@ public class XrayAdapter implements TestTrackingModelAdapter {
      */
     @Override
     public void configure(Binder binder) {
-        binder.bind(TestTrackingModelAdapter.class).to(XrayAdapter.class);
+        binder.bind(TestTrackingModelAdapter.class).to(XrayModelAdapter.class);
     }
 }

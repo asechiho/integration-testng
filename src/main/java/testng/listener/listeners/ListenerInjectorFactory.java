@@ -1,5 +1,6 @@
 package testng.listener.listeners;
 
+import com.google.common.reflect.ClassPath;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -7,9 +8,17 @@ import com.google.inject.util.Modules;
 import org.testng.IModuleFactory;
 import org.testng.ITestContext;
 import org.testng.internal.ClassHelper;
+import testng.listener.DefaultGuice;
+import testng.listener.annotations.GuiceInitialization;
+import testng.listener.exceptions.InjectionClassException;
+import testng.listener.interfaces.IGuiceInitialization;
 import testng.listener.interfaces.IntegrationConfig;
-import testng.listener.resultexecutors.defaultex.EmptyResultAdapter;
-import testng.listener.resultexecutors.defaultex.EmptyResultExecutor;
+import testng.listener.resultexecutors.defaultex.EmptyModelAdapter;
+import testng.listener.resultexecutors.defaultex.EmptyExecutorAdapter;
+
+import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 class ListenerInjectorFactory implements IModuleFactory {
 
@@ -32,7 +41,7 @@ class ListenerInjectorFactory implements IModuleFactory {
 
     synchronized private static Module getModule() {
         if (inject == null) {
-            inject = Modules.override(new EmptyResultExecutor(), new EmptyResultAdapter()).with(initExecutorModule(), initAdapterModule());
+            inject = Modules.override(new EmptyExecutorAdapter(), new EmptyModelAdapter()).with(initExecutorAdapterModule(), initModelAdapterModule());
         }
         return inject;
     }
@@ -40,29 +49,43 @@ class ListenerInjectorFactory implements IModuleFactory {
     /**
      * @return instance of root module, defined by sysproperty "test.tracking.class"
      */
-    private static Module initExecutorModule() {
-        return initModule(new EmptyResultExecutor(), IntegrationConfig.getInstance().getExecutorClassName());
+    private static Module initExecutorAdapterModule() {
+        return iniGuiceInitialization().getExecutorAdapter();
     }
 
     /**
      * @return instance of root module, defined by sysproperty "test.tracking.model.adapter.class"
      */
-    private static Module initAdapterModule() {
-        return initModule(new EmptyResultAdapter(), IntegrationConfig.getInstance().getAdapterClassName());
+    private static Module initModelAdapterModule() {
+        return iniGuiceInitialization().getModelAdapter();
     }
 
     /**
      * @return instance of a module
      */
-    private static Module initModule(Module module, String className) {
+    private static IGuiceInitialization iniGuiceInitialization() {
         try {
             if (!IntegrationConfig.getInstance().isTestTrackingUse()) {
-                return module;
+                return new DefaultGuice();
             }
-            Class<?> moduleClass = Class.forName(className);
-            return (Module) ClassHelper.newInstance(moduleClass);
-        } catch (Throwable e) {
+            return (IGuiceInitialization) ClassHelper.newInstance(getGuiceInitializationClass().load());
+        } catch (IOException e) {
             throw new RuntimeException("Unable to initialize Guice module", e);
         }
+    }
+
+    @SuppressWarnings("all")
+    private static ClassPath.ClassInfo getGuiceInitializationClass() throws IOException {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        ClassPath classPath = ClassPath.from(classLoader);
+        Set<ClassPath.ClassInfo> classes = classPath.getAllClasses();
+
+        Set<ClassPath.ClassInfo> classesWithAnnotation = classes.stream()
+                .filter(classInfo -> classInfo.load().isAnnotationPresent(GuiceInitialization.class))
+                .collect(Collectors.toSet());
+        if (classesWithAnnotation.size() != 1) {
+            throw new InjectionClassException(String.format("Found more 1 class with annotation: {%s}", IGuiceInitialization.class.getName()));
+        }
+        return classesWithAnnotation.iterator().next();
     }
 }

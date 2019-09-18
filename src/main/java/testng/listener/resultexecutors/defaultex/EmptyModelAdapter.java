@@ -6,7 +6,7 @@ import org.testng.ITestNGMethod;
 import testng.listener.interfaces.TestTrackingModelAdapter;
 import testng.listener.interfaces.JsonAdapter;
 
-public class EmptyResultAdapter implements TestTrackingModelAdapter {
+public class EmptyModelAdapter implements TestTrackingModelAdapter {
 
     @Override
     public JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod, String status) {
@@ -25,6 +25,6 @@ public class EmptyResultAdapter implements TestTrackingModelAdapter {
      */
     @Override
     public void configure(Binder binder) {
-        binder.bind(TestTrackingModelAdapter.class).to(EmptyResultAdapter.class);
+        binder.bind(TestTrackingModelAdapter.class).to(EmptyModelAdapter.class);
     }
 }

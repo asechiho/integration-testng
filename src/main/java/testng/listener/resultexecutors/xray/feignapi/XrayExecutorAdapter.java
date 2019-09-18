@@ -11,7 +11,7 @@ import testng.listener.interfaces.TestTrackingSystemConfig;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class XrayTestExecutionImpl implements PostResult {
+public class XrayExecutorAdapter implements PostResult {
 
     private static final TestTrackingSystemConfig CONFIG = TestTrackingSystemConfig.getInstance();
     private static final IntegrationConfig INTEGRATION_CONFIG = IntegrationConfig.getInstance();
@@ -34,6 +34,6 @@ public class XrayTestExecutionImpl implements PostResult {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(PostResult.class).to(XrayTestExecutionImpl.class).in(Scopes.SINGLETON);
+        binder.bind(PostResult.class).to(XrayExecutorAdapter.class).in(Scopes.SINGLETON);
     }
 }
