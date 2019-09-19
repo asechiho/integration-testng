@@ -97,7 +97,9 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
     }
 
     private List<Throwable> getTestThrowable(Collection<ITestResult> testResults, ITestNGMethod method) {
-        return testResults.stream().filter(getTestContainsPredicate(method))
+        return testResults.stream()
+                .distinct()
+                .filter(getTestContainsPredicate(method))
                 .map(ITestResult::getThrowable)
                 .collect(Collectors.toList());
     }
@@ -105,6 +107,7 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
     private List<Throwable> getClassThrowable(Collection<ITestResult> testResults, List<ITestNGMethod> methods) {
         List<Throwable> throwable = new ArrayList<>();
         methods.stream()
+                .distinct()
                 .map(method -> getTestThrowable(testResults, method))
                 .forEach(throwable::addAll);
         return throwable;
@@ -120,6 +123,7 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
 
     private synchronized void post(JsonAdapter adapter) {
         if (adapter != null) {
+            Logger.getGlobal().info("Model: " + adapter.toJson());
             this.actions.execute(adapter);
         }
     }
