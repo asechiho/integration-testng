@@ -22,6 +22,6 @@ public class Status {
     }
 
     public String getAllMessage(String delimiter) {
-        return this.getErrorList().stream().map(Throwable::getMessage).collect(Collectors.joining(delimiter));
+        return (errorList == null || errorList.isEmpty()) ? "" : this.getErrorList().stream().map(Throwable::getMessage).collect(Collectors.joining(delimiter));
     }
 }
