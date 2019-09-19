@@ -42,6 +42,24 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
     }
 
     @Override
+    public void onTestSuccess(ITestResult tr) {
+        updateAfterRetry(tr);
+        super.onTestSuccess(tr);
+    }
+
+    @Override
+    public void onTestFailure(ITestResult tr) {
+        updateAfterRetry(tr);
+        super.onTestFailure(tr);
+    }
+
+    @Override
+    public void onTestSkipped(ITestResult tr) {
+        updateAfterRetry(tr);
+        super.onTestSkipped(tr);
+    }
+
+    @Override
     public ITestNGListener createListener(Class<? extends ITestNGListener> listenerClass) {
         try {
             ITestNGListener listener = listenerClass.getConstructor().newInstance();
@@ -116,5 +134,27 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
 
     private JsonAdapter getResultFromClass(ITestClass iTestClass) {
         return listenerAdapter.getResultFromClass(iTestClass, getClassStatus(iTestClass));
+    }
+
+    private void updateAfterRetry(ITestResult tr) {
+        List<ITestResult> res = getSkippedTests().stream()
+                .filter(filter(tr))
+                .collect(Collectors.toList());
+        List<ITestResult> test = getSkippedTests();
+        test.removeAll(res);
+        setSkippedTests(test);
+
+        res = getFailedTests().stream()
+                .filter(filter(tr))
+                .collect(Collectors.toList());
+        test = getFailedTests();
+        test.removeAll(res);
+        setFailedTests(test);
+    }
+
+    private Predicate<? super ITestResult> filter(ITestResult tr) {
+        return iTestResult -> iTestResult.getName().equalsIgnoreCase(tr.getName()) &&
+                iTestResult.getMethod().equals(tr.getMethod()) &&
+                Objects.deepEquals(iTestResult.getParameters(), tr.getParameters());
     }
 }
