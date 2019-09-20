@@ -147,7 +147,6 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
         List<ITestResult> test = getSkippedTests();
         test.removeAll(res);
         setSkippedTests(test);
-
         res = getFailedTests().stream()
                 .filter(filter(tr))
                 .collect(Collectors.toList());

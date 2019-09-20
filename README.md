@@ -25,7 +25,7 @@ public class EmptyExecutorAdapter implements ExecutorAdapter {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(PostResult.class).to(EmptyResultExecutor.class);
+        binder.bind(ExecutorAdapter.class).to(EmptyResultExecutor.class);
     }
 }
 ```
@@ -51,7 +51,7 @@ public class EmptyModelAdapter implements ModelAdapter {
      */
     @Override
     public void configure(Binder binder) {
-        binder.bind(TestTrackingModelAdapter.class).to(EmptyResultAdapter.class);
+        binder.bind(ModelAdapter.class).to(EmptyResultAdapter.class);
     }
 }
 ```
