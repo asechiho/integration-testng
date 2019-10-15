@@ -6,28 +6,62 @@
 
     <groupId>io.github.asechiho</groupId>
     <artifactId>integration-testng</artifactId>
-    <version>1.3</version>
+    <name>Test Tracking integration TestNG</name>
+    <version>1.4</version>
     <packaging>jar</packaging>
 
-    <licenses>
-        <license>
-            <name>GNU General Public License v3.0</name>
-            <url>https://api.github.com/licenses/gpl-3.0</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+    <properties>
+        <java.version>1.8</java.version>
+        <github.global.server>github</github.global.server>
+        <github.maven-plugin>0.9</github.maven-plugin>
+    </properties>
 
-    <scm>
-        <url>https://github.com/asechiho/integration-testng/releases</url>
-    </scm>
+    <distributionManagement>
+        <repository>
+            <id>internal.repo</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.build.directory}/mvn-repo</url>
+        </repository>
+    </distributionManagement>
 
-    <developers>
-        <developer>
-            <id>asechiho</id>
-            <name>Lesha</name>
-            <email>sechixo@gmail.com</email>
-        </developer>
-    </developers>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>${github.maven-plugin}</version>
+                <configuration>
+                    <message>Maven artifacts for ${project.version}</message>
+                    <noJekyll>true</noJekyll>
+                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
+                    <branch>refs/heads/mvn-repo</branch>
+                    <includes><include>**/*</include></includes>
+                    <repositoryName>integration-testng</repositoryName>
+                    <repositoryOwner>asechiho</repositoryOwner>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
