@@ -9,6 +9,7 @@ import org.reflections.util.ConfigurationBuilder;
 import org.testng.IModuleFactory;
 import org.testng.ITestContext;
 import org.testng.internal.ClassHelper;
+import org.testng.internal.InstanceCreator;
 import testng.listener.DefaultGuice;
 import testng.listener.annotations.GuiceInitialization;
 import testng.listener.exceptions.ClassPathException;
@@ -69,7 +70,7 @@ class ListenerInjectorFactory implements IModuleFactory {
     private static IGuiceInitialization iniGuiceInitialization() {
         try {
             return !IntegrationConfig.getInstance().isTestTrackingUse() ? new DefaultGuice()
-                    : (IGuiceInitialization) ClassHelper.newInstance(getGuiceInitializationClass());
+                    : (IGuiceInitialization) InstanceCreator.newInstance(getGuiceInitializationClass());
         } catch (MalformedURLException e) {
             throw new ClassPathException(e.getMessage());
         }

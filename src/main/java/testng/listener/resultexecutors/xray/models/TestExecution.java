@@ -37,7 +37,9 @@ public class TestExecution implements JsonAdapter {
 
     @Override
     public String toJson() {
-        return new GsonBuilder().registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter(DateTimeFormatter.ISO_OFFSET_DATE_TIME)).create()
+        return new GsonBuilder()
+                .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
+                .create()
                 .toJson(this, TestExecution.class);
     }
 

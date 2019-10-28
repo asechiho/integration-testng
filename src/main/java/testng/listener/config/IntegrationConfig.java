@@ -12,9 +12,6 @@ public interface IntegrationConfig {
     @DefaultValue("false")
     boolean isTestTrackingUse();
 
-    @Property("test.tracking.system")
-    String getTestTrackingSystem();
-
     @Property("test.tracking.system.login")
     String getTestTrackingSystemLogin();
 

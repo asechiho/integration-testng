@@ -76,7 +76,7 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
                 new Status(INTEGRATION_CONFIG.getStatusFail(), getTestThrowable(getFailedTests(), testNGMethod)) :
                 new Status(INTEGRATION_CONFIG.getStatusPass(), null);
         status = isSkippTest(testNGMethod) ?
-               new Status(INTEGRATION_CONFIG.getStatusSkip(), getTestThrowable(getSkippedTests(), testNGMethod)) : status;
+                new Status(INTEGRATION_CONFIG.getStatusSkip(), getTestThrowable(getSkippedTests(), testNGMethod)) : status;
         return status;
     }
 
@@ -142,20 +142,20 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
 
     private void updateAfterRetry(ITestResult tr) {
         List<ITestResult> res = getSkippedTests().stream()
-                .filter(filter(tr))
+                .filter(predicateToEqualITestResult(tr))
                 .collect(Collectors.toList());
         List<ITestResult> test = getSkippedTests();
         test.removeAll(res);
         setSkippedTests(test);
         res = getFailedTests().stream()
-                .filter(filter(tr))
+                .filter(predicateToEqualITestResult(tr))
                 .collect(Collectors.toList());
         test = getFailedTests();
         test.removeAll(res);
         setFailedTests(test);
     }
 
-    private Predicate<? super ITestResult> filter(ITestResult tr) {
+    private Predicate<? super ITestResult> predicateToEqualITestResult(ITestResult tr) {
         return iTestResult -> iTestResult.getName().equalsIgnoreCase(tr.getName()) &&
                 iTestResult.getMethod().equals(tr.getMethod()) &&
                 Objects.deepEquals(iTestResult.getParameters(), tr.getParameters());
