@@ -47,13 +47,15 @@
                 <artifactId>site-maven-plugin</artifactId>
                 <version>0.12</version>
                 <configuration>
+                    <server>${github.global.server}</server>
                     <message>Maven artifacts for ${project.version}</message>
                     <noJekyll>true</noJekyll>
                     <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
                     <branch>refs/heads/maven-repo</branch>
                     <includes><include>**/*</include></includes>
-                    <repositoryName>integration-testng</repositoryName>
+                    <userName>asechiho</userName>
                     <repositoryOwner>asechiho</repositoryOwner>
+                    <repositoryName>integration-testng</repositoryName>
                 </configuration>
                 <executions>
                     <execution>

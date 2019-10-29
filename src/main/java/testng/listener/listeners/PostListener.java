@@ -141,23 +141,21 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
     }
 
     private void updateAfterRetry(ITestResult tr) {
-        List<ITestResult> res = getSkippedTests().stream()
-                .filter(predicateToEqualITestResult(tr))
-                .collect(Collectors.toList());
-        List<ITestResult> test = getSkippedTests();
-        test.removeAll(res);
-        setSkippedTests(test);
-        res = getFailedTests().stream()
-                .filter(predicateToEqualITestResult(tr))
-                .collect(Collectors.toList());
-        test = getFailedTests();
-        test.removeAll(res);
-        setFailedTests(test);
+        setSkippedTests(removeTestWithStatusByFilter(getSkippedTests(), predicateToEqualITestResult(tr)));
+        setFailedTests(removeTestWithStatusByFilter(getFailedTests(), predicateToEqualITestResult(tr)));
     }
 
     private Predicate<? super ITestResult> predicateToEqualITestResult(ITestResult tr) {
         return iTestResult -> iTestResult.getName().equalsIgnoreCase(tr.getName()) &&
                 iTestResult.getMethod().equals(tr.getMethod()) &&
                 Objects.deepEquals(iTestResult.getParameters(), tr.getParameters());
+    }
+
+    private synchronized List<ITestResult> removeTestWithStatusByFilter(List<ITestResult> results, Predicate<? super ITestResult> filter) {
+        List<ITestResult> res = results.stream()
+                .filter(filter)
+                .collect(Collectors.toList());
+        results.removeAll(res);
+        return results;
     }
 }
