@@ -8,8 +8,6 @@ Technology stack:
 4. Allure TestNG core([docs](https://docs.qameta.io/allure/)) - use Link annotation for marker test key
 5. qatools/properties([docs](https://github.com/qatools/properties))
 
-Build tool: gradle
-
 ## Getting started
 **First**: add the library to our project. <br>
 **Second**: add test tracking system executor with implement _**ExecutorAdapter**_ interface. For example: EmptyResultExecutor (used if test.tracking.use
@@ -60,12 +58,12 @@ public class EmptyModelAdapter implements ModelAdapter {
 @GuiceInitialization
 public class DefaultGuice implements IGuiceInitialization {
     @Override
-    public PostResult getExecutorAdapter() {
+    public ExecutorAdapter getExecutorAdapter() {
         return new EmptyExecutorAdapter();
     }
 
     @Override
-    public TestTrackingModelAdapter getModelAdapter() {
+    public ModelAdapter getModelAdapter() {
         return new EmptyModelAdapter();
     }
 }
