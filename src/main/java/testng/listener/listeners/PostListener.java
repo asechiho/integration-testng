@@ -3,6 +3,9 @@ package testng.listener.listeners;
 import com.google.inject.Inject;
 import org.testng.*;
 import org.testng.annotations.Guice;
+import org.testng.collections.Maps;
+import testng.listener.models.TestResults;
+import testng.listener.annotations.TestKey;
 import testng.listener.config.IntegrationConfig;
 import testng.listener.interfaces.ExecutorAdapter;
 import testng.listener.interfaces.JsonAdapter;
@@ -14,14 +17,15 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Guice(moduleFactory = ListenerInjectorFactory.class)
-public class PostListener extends TestListenerAdapter implements ITestNGListenerFactory, IClassListener {
+public class PostListener implements ITestNGListener, ITestNGListenerFactory, ITestListener, IClassListener {
 
     private static final IntegrationConfig INTEGRATION_CONFIG = IntegrationConfig.getInstance();
+    private static final Map<TestKey, Set<ITestResult>> TEST_RESULTS = Maps.newLinkedHashMap();
 
     @Inject
-    private ExecutorAdapter actions;
+    private ExecutorAdapter executorAdapter;
     @Inject
-    private ModelAdapter listenerAdapter;
+    private ModelAdapter modelAdapter;
 
     public PostListener() {
         ListenerInjectorFactory.getInjector().injectMembers(this);
@@ -33,30 +37,47 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
 
     @Override
     public void onAfterClass(ITestClass testClass) {
-        for (ITestNGMethod method : testClass.getTestMethods()) {
-            if (listenerAdapter.isTestPush(method)) {
-                post(getResultFromMethod(method));
+        postTestMethodsWithTestKey(testClass);
+        TestKey testKey = getAnnotation(testClass);
+        if (!isKeyEmpty(testKey)) {
+            synchronized (TEST_RESULTS) {
+                if (TEST_RESULTS.containsKey(testKey)) {
+                    post(getResult(new TestResults(testKey, TEST_RESULTS.get(testKey))));
+                }
             }
         }
-        post(getResultFromClass(testClass));
+    }
+
+    private boolean isKeyEmpty(TestKey testKey) {
+        return testKey == null || testKey.key().isEmpty();
+    }
+
+    private void postTestMethodsWithTestKey(ITestClass testClass) {
+        Set<ITestNGMethod> pushMethods = Arrays.stream(testClass.getTestMethods())
+                .filter(test -> test.getConstructorOrMethod().getMethod().isAnnotationPresent(TestKey.class))
+                .filter(test -> isKeyEmpty(test.getConstructorOrMethod().getMethod().getAnnotation(TestKey.class)))
+                .collect(Collectors.toSet());
+        pushMethods.forEach(method -> {
+            TestKey key = method.getConstructorOrMethod().getMethod().getAnnotation(TestKey.class);
+            synchronized (TEST_RESULTS) {
+                post(getResult(new TestResults(key, TEST_RESULTS.get(key))));
+            }
+        });
     }
 
     @Override
     public void onTestSuccess(ITestResult tr) {
-        updateAfterRetry(tr);
-        super.onTestSuccess(tr);
+        addResult(tr);
     }
 
     @Override
     public void onTestFailure(ITestResult tr) {
-        updateAfterRetry(tr);
-        super.onTestFailure(tr);
+        addResult(tr);
     }
 
     @Override
     public void onTestSkipped(ITestResult tr) {
-        updateAfterRetry(tr);
-        super.onTestSkipped(tr);
+        addResult(tr);
     }
 
     @Override
@@ -71,60 +92,10 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
         }
     }
 
-    private Status getTestStatus(ITestNGMethod testNGMethod) {
-        Status status = isFailedTest(testNGMethod) ?
-                new Status(INTEGRATION_CONFIG.getStatusFail(), getTestThrowable(getFailedTests(), testNGMethod)) :
-                new Status(INTEGRATION_CONFIG.getStatusPass(), null);
-        status = isSkippTest(testNGMethod) ?
-                new Status(INTEGRATION_CONFIG.getStatusSkip(), getTestThrowable(getSkippedTests(), testNGMethod)) : status;
-        return status;
-    }
-
-    private Status getClassStatus(ITestClass iTestClass) {
-        List<ITestNGMethod> noAnnotatedMethods = Arrays.stream(iTestClass.getTestMethods())
-                .filter(mthd -> !listenerAdapter.isTestPush(mthd))
-                .collect(Collectors.toList());
-        Status status = noAnnotatedMethods.stream().anyMatch(this::isFailedTest) ?
-                new Status(INTEGRATION_CONFIG.getStatusFail(), getClassThrowable(getFailedTests(), noAnnotatedMethods)) :
-                new Status(INTEGRATION_CONFIG.getStatusPass(), null);
-        status = noAnnotatedMethods.stream().anyMatch(this::isSkippTest) ?
-                new Status(INTEGRATION_CONFIG.getStatusSkip(), getClassThrowable(getSkippedTests(), noAnnotatedMethods)) : status;
-        return status;
-    }
-
-    private boolean isFailedTest(ITestNGMethod method) {
-        return getFailedTests().stream().anyMatch(getTestContainsPredicate(method));
-    }
-
-    private List<Throwable> getTestThrowable(Collection<ITestResult> testResults, ITestNGMethod method) {
-        return testResults.stream()
-                .distinct()
-                .filter(getTestContainsPredicate(method))
-                .map(ITestResult::getThrowable)
-                .collect(Collectors.toList());
-    }
-
-    private List<Throwable> getClassThrowable(Collection<ITestResult> testResults, List<ITestNGMethod> methods) {
-        List<Throwable> throwable = new ArrayList<>();
-        methods.stream()
-                .distinct()
-                .map(method -> getTestThrowable(testResults, method))
-                .forEach(throwable::addAll);
-        return throwable;
-    }
-
-    private boolean isSkippTest(ITestNGMethod method) {
-        return getSkippedTests().stream().anyMatch(getTestContainsPredicate(method));
-    }
-
-    private Predicate<? super ITestResult> getTestContainsPredicate(ITestNGMethod containsMethod) {
-        return (Predicate<ITestResult>) testNGMethod -> testNGMethod.getMethod().getMethodName().equalsIgnoreCase(containsMethod.getMethodName());
-    }
-
     private synchronized void post(JsonAdapter adapter) {
         if (adapter != null) {
             Logger.getGlobal().info("Model: " + adapter.toJson());
-            this.actions.execute(adapter);
+            this.executorAdapter.execute(adapter);
         }
     }
 
@@ -132,30 +103,39 @@ public class PostListener extends TestListenerAdapter implements ITestNGListener
         return INTEGRATION_CONFIG;
     }
 
-    private JsonAdapter getResultFromMethod(ITestNGMethod iTestNGMethod) {
-        return listenerAdapter.getResultFromMethod(iTestNGMethod, getTestStatus(iTestNGMethod));
-    }
-
-    private JsonAdapter getResultFromClass(ITestClass iTestClass) {
-        return listenerAdapter.getResultFromClass(iTestClass, getClassStatus(iTestClass));
-    }
-
-    private void updateAfterRetry(ITestResult tr) {
-        setSkippedTests(removeTestWithStatusByFilter(getSkippedTests(), predicateToEqualITestResult(tr)));
-        setFailedTests(removeTestWithStatusByFilter(getFailedTests(), predicateToEqualITestResult(tr)));
+    private JsonAdapter getResult(TestResults results) {
+        return modelAdapter.getResult(results);
     }
 
     private Predicate<? super ITestResult> predicateToEqualITestResult(ITestResult tr) {
-        return iTestResult -> iTestResult.getName().equalsIgnoreCase(tr.getName()) &&
-                iTestResult.getMethod().equals(tr.getMethod()) &&
-                Objects.deepEquals(iTestResult.getParameters(), tr.getParameters());
+        return iTestResult -> Objects.deepEquals(iTestResult.getParameters(), tr.getParameters());
     }
 
-    private synchronized List<ITestResult> removeTestWithStatusByFilter(List<ITestResult> results, Predicate<? super ITestResult> filter) {
-        List<ITestResult> res = results.stream()
-                .filter(filter)
-                .collect(Collectors.toList());
-        results.removeAll(res);
-        return results;
+    private void addResult(ITestResult tr) {
+        TestKey testKey = getAnnotation(tr);
+        if (!isKeyEmpty(testKey)) {
+            addResultToSet(testKey, tr);
+        }
+    }
+
+    private void addResultToSet(TestKey key, ITestResult tr) {
+        synchronized (TEST_RESULTS) {
+            if (TEST_RESULTS.containsKey(key)) {
+                Set<ITestResult> removeResults = TEST_RESULTS.get(key).stream()
+                        .filter(predicateToEqualITestResult(tr))
+                        .collect(Collectors.toSet());
+                TEST_RESULTS.get(key).removeAll(removeResults);
+                TEST_RESULTS.get(key).add(tr);
+            }
+        }
+    }
+
+    private TestKey getAnnotation(ITestResult tr) {
+        TestKey key = tr.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestKey.class);
+        return key == null ? getAnnotation(tr.getTestClass()) : key;
+    }
+
+    private TestKey getAnnotation(IClass testClass) {
+        return testClass.getRealClass().getAnnotation(TestKey.class);
     }
 }

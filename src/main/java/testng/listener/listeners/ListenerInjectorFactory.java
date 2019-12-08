@@ -8,7 +8,6 @@ import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 import org.testng.IModuleFactory;
 import org.testng.ITestContext;
-import org.testng.internal.ClassHelper;
 import org.testng.internal.InstanceCreator;
 import testng.listener.DefaultGuice;
 import testng.listener.annotations.GuiceInitialization;

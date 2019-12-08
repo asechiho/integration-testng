@@ -18,6 +18,10 @@ public interface IntegrationConfig {
     @Property("test.tracking.system.password")
     String getTestTrackingSystemPassword();
 
+    @Property("test.throwable.prefix")
+    @DefaultValue("")
+    String getThrowablePrefixes();
+
     @Property("test.status.fail")
     @DefaultValue("FAIL")
     String getStatusFail();
