@@ -92,7 +92,7 @@ public class PostListener implements ITestNGListener, ITestNGListenerFactory, IT
         }
     }
 
-    private synchronized void post(JsonAdapter adapter) {
+    private void post(JsonAdapter adapter) {
         if (adapter != null) {
             Logger.getGlobal().info("Model: " + adapter.toJson());
             this.executorAdapter.execute(adapter);
