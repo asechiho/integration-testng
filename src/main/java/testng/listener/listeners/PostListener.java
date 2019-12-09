@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import org.testng.*;
 import org.testng.annotations.Guice;
 import org.testng.collections.Maps;
+import org.testng.collections.Sets;
 import testng.listener.annotations.TestKey;
 import testng.listener.config.IntegrationConfig;
 import testng.listener.interfaces.ExecutorAdapter;
@@ -11,10 +12,7 @@ import testng.listener.interfaces.JsonAdapter;
 import testng.listener.interfaces.ModelAdapter;
 import testng.listener.models.TestResults;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -36,6 +34,12 @@ public class PostListener implements ITestNGListener, ITestNGListenerFactory, IT
 
     @Override
     public void onBeforeClass(ITestClass testClass) {
+        TestKey testKey = getAnnotation(testClass);
+        if (!isKeyEmpty(testKey)) {
+            synchronized (TEST_RESULTS) {
+                TEST_RESULTS.put(testKey, new HashSet<>());
+            }
+        }
     }
 
     @Override
@@ -129,6 +133,8 @@ public class PostListener implements ITestNGListener, ITestNGListenerFactory, IT
                         .collect(Collectors.toSet());
                 TEST_RESULTS.get(key).removeAll(removeResults);
                 TEST_RESULTS.get(key).add(tr);
+            } else {
+                TEST_RESULTS.put(key, Sets.newHashSet(tr));
             }
         }
     }
