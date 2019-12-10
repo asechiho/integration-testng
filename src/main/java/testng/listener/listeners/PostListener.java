@@ -35,7 +35,7 @@ public class PostListener implements ITestNGListener, ITestNGListenerFactory, IT
     @Override
     public void onBeforeClass(ITestClass testClass) {
         TestKey testKey = getAnnotation(testClass);
-        if (!isKeyEmpty(testKey)) {
+        if (isKeyNotEmpty(testKey)) {
             synchronized (TEST_RESULTS) {
                 TEST_RESULTS.put(testKey, new HashSet<>());
             }
@@ -46,7 +46,7 @@ public class PostListener implements ITestNGListener, ITestNGListenerFactory, IT
     public void onAfterClass(ITestClass testClass) {
         postTestMethodsWithTestKey(testClass);
         TestKey testKey = getAnnotation(testClass);
-        if (!isKeyEmpty(testKey)) {
+        if (isKeyNotEmpty(testKey)) {
             synchronized (TEST_RESULTS) {
                 if (TEST_RESULTS.containsKey(testKey)) {
                     post(getResult(new TestResults(testKey, TEST_RESULTS.get(testKey))));
@@ -55,14 +55,14 @@ public class PostListener implements ITestNGListener, ITestNGListenerFactory, IT
         }
     }
 
-    private boolean isKeyEmpty(TestKey testKey) {
-        return testKey == null || testKey.key().isEmpty();
+    private boolean isKeyNotEmpty(TestKey testKey) {
+        return testKey != null && !testKey.key().isEmpty();
     }
 
     private void postTestMethodsWithTestKey(ITestClass testClass) {
         Set<ITestNGMethod> pushMethods = Arrays.stream(testClass.getTestMethods())
                 .filter(test -> test.getConstructorOrMethod().getMethod().isAnnotationPresent(TestKey.class))
-                .filter(test -> isKeyEmpty(test.getConstructorOrMethod().getMethod().getAnnotation(TestKey.class)))
+                .filter(test -> isKeyNotEmpty(test.getConstructorOrMethod().getMethod().getAnnotation(TestKey.class)))
                 .collect(Collectors.toSet());
         pushMethods.forEach(method -> {
             TestKey key = method.getConstructorOrMethod().getMethod().getAnnotation(TestKey.class);
@@ -120,7 +120,7 @@ public class PostListener implements ITestNGListener, ITestNGListenerFactory, IT
 
     private void addResult(ITestResult tr) {
         TestKey testKey = getAnnotation(tr);
-        if (!isKeyEmpty(testKey)) {
+        if (isKeyNotEmpty(testKey)) {
             addResultToSet(testKey, tr);
         }
     }

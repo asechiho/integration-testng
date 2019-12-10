@@ -1,9 +1,9 @@
 package testng.listener.resultexecutors.xray;
 
 import com.google.inject.Binder;
-import testng.listener.models.TestResults;
 import testng.listener.interfaces.JsonAdapter;
 import testng.listener.interfaces.ModelAdapter;
+import testng.listener.models.TestResults;
 import testng.listener.resultexecutors.xray.models.TestExecution;
 import testng.listener.resultexecutors.xray.models.TestInfo;
 

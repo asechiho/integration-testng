@@ -1,8 +1,8 @@
 package testng.listener.resultexecutors.defaultex;
 
 import com.google.inject.Binder;
-import testng.listener.interfaces.JsonAdapter;
 import testng.listener.interfaces.ExecutorAdapter;
+import testng.listener.interfaces.JsonAdapter;
 
 import java.util.logging.Logger;
 
