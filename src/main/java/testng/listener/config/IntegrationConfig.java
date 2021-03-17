@@ -12,14 +12,15 @@ public interface IntegrationConfig {
     @DefaultValue("false")
     boolean isTestTrackingUse();
 
-    @Property("test.tracking.system")
-    String getTestTrackingSystem();
-
     @Property("test.tracking.system.login")
     String getTestTrackingSystemLogin();
 
     @Property("test.tracking.system.password")
     String getTestTrackingSystemPassword();
+
+    @Property("test.throwable.prefix")
+    @DefaultValue("")
+    String getThrowablePrefixes();
 
     @Property("test.status.fail")
     @DefaultValue("FAIL")

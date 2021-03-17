@@ -6,7 +6,6 @@ public class InjectionClassException extends RuntimeException {
 
     public InjectionClassException(String message) {
         super(PREFIX + message);
-
     }
 
 }

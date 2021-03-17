@@ -2,11 +2,10 @@ package testng.listener.resultexecutors.xray.feignapi;
 
 import com.google.inject.Binder;
 import com.google.inject.Scopes;
-import okhttp3.Credentials;
 import testng.listener.FeignDriver;
 import testng.listener.config.IntegrationConfig;
-import testng.listener.interfaces.JsonAdapter;
 import testng.listener.interfaces.ExecutorAdapter;
+import testng.listener.interfaces.JsonAdapter;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -24,10 +23,7 @@ public class XRayExecutorAdapter implements ExecutorAdapter {
 
     @Override
     public void execute(JsonAdapter testExecution) {
-        getInstance().updateTestExecution(
-                Credentials.basic(INTEGRATION_CONFIG.getTestTrackingSystemLogin(), INTEGRATION_CONFIG.getTestTrackingSystemPassword()),
-                INTEGRATION_CONFIG.getBaseApiPath(),
-                testExecution.toJson());
+        getInstance().updateTestExecution(INTEGRATION_CONFIG.getBaseApiPath(), testExecution.toJson());
     }
 
     @Override

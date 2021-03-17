@@ -8,13 +8,13 @@ import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 import org.testng.IModuleFactory;
 import org.testng.ITestContext;
-import org.testng.internal.ClassHelper;
+import org.testng.internal.InstanceCreator;
 import testng.listener.DefaultGuice;
 import testng.listener.annotations.GuiceInitialization;
+import testng.listener.config.IntegrationConfig;
 import testng.listener.exceptions.ClassPathException;
 import testng.listener.exceptions.InjectionClassException;
 import testng.listener.interfaces.IGuiceInitialization;
-import testng.listener.config.IntegrationConfig;
 import testng.listener.resultexecutors.defaultex.EmptyExecutorAdapter;
 import testng.listener.resultexecutors.defaultex.EmptyModelAdapter;
 
@@ -43,9 +43,8 @@ class ListenerInjectorFactory implements IModuleFactory {
     }
 
     synchronized private static Module getModule() {
-        if (inject == null) {
+        if (inject == null)
             inject = Modules.override(new EmptyExecutorAdapter(), new EmptyModelAdapter()).with(initExecutorAdapterModule(), initModelAdapterModule());
-        }
         return inject;
     }
 
@@ -69,7 +68,7 @@ class ListenerInjectorFactory implements IModuleFactory {
     private static IGuiceInitialization iniGuiceInitialization() {
         try {
             return !IntegrationConfig.getInstance().isTestTrackingUse() ? new DefaultGuice()
-                    : (IGuiceInitialization) ClassHelper.newInstance(getGuiceInitializationClass());
+                    : (IGuiceInitialization) InstanceCreator.newInstance(getGuiceInitializationClass());
         } catch (MalformedURLException e) {
             throw new ClassPathException(e.getMessage());
         }
@@ -85,7 +84,7 @@ class ListenerInjectorFactory implements IModuleFactory {
         ConfigurationBuilder builder = new ConfigurationBuilder().setUrls(new File(resource.getPath()).getParentFile().toURI().toURL());
         Set<Class<?>> classInfoSet = new Reflections(builder).getTypesAnnotatedWith(GuiceInitialization.class);
         if (classInfoSet.size() != 1) {
-            throw new InjectionClassException(String.format("Found more 1 class with annotation: {%s}", IGuiceInitialization.class.getName()));
+            throw new InjectionClassException(String.format("Found more 1 class with annotation: {%s}", GuiceInitialization.class.getName()));
         }
         return classInfoSet.iterator().next();
     }

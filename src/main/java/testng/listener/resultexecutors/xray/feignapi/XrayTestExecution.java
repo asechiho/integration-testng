@@ -8,7 +8,7 @@ import feign.RequestLine;
 public interface XrayTestExecution{
 
     @RequestLine("POST {baseApiPath}/import/execution")
-    @Headers({"Authorization: {token}", "Content-Type: application/json"})
+    @Headers("Content-Type: application/json")
     @Body("{testExecution}")
-    void updateTestExecution(@Param("token") String token, @Param("baseApiPath") String baseApiPath, @Param("testExecution") String testExecution);
+    void updateTestExecution(@Param("baseApiPath") String baseApiPath, @Param("testExecution") String testExecution);
 }
